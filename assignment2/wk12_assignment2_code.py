@@ -11,7 +11,7 @@ import time
 
 from scipy.optimize import brentq
 from multiprocessing import Process, freeze_support
-
+from ema_workbench.em_framework.evaluators import MC
 # lake model is now in wk12_lake_model_solo.py to prevent parallel errors
 from wk12_lake_model_solo import lake_model_actual
 
@@ -52,29 +52,35 @@ model.outcomes = [ScalarOutcome('max_P'),
 
 # set levers
 #model.levers = [RealParameter('decisions', 0, 0.1)]
-model.levers = [RealParameter(str(i), 0, 0.1) for i in
+model.levers = [RealParameter(f"l{i}", 0, 0.1) for i in
                      range(model.time_horizon)]
 
 # model constants
 model.constants = [Constant('alpha', 0.4),
-                   Constant('nsamples', 100),
-                   Constant('steps', 100)]
+                   Constant('nsamples', 100)
+                   ]
 
 #####################################################################################################
-
+from ema_workbench import Policy
 # performing experiments
+# generate experiments
+n_scenarios = 1000
+n_policies = 4
+policy = Policy("no release", **{l.name:0 for l in model.levers})
+
 from ema_workbench import (MultiprocessingEvaluator, ema_logging, perform_experiments)
+
 ema_logging.log_to_stderr(ema_logging.INFO)
 
 if __name__ == '__main__':
     freeze_support()
     with MultiprocessingEvaluator(model, n_processes=7) as evaluator:
-        results = evaluator.perform_experiments(scenarios=1000, policies=4)
+        results = evaluator.perform_experiments(scenarios=1000, policies=4, levers_sampling=MC)
 
 #####################################################################################################
 
 # process the results of the experiments
-    experiments, outcomes = results
+        experiments, outcomes = results
     print(experiments.shape)
     print(list(outcomes.keys()))
     stop = time.time()
@@ -84,11 +90,9 @@ if __name__ == '__main__':
 
     fig, axes = pairs_plotting.pairs_scatter(experiments, outcomes, group_by='policy',
                                              legend=False)
+    hue = 'policy'
     fig.set_size_inches(8, 8)
     plt.show()
-
-
-
 
 ##PLOTTEN LUKT NIET
     # from ema_workbench.analysis import plotting, plotting_util
