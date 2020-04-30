@@ -84,7 +84,7 @@ lake_model.uncertainties = [RealParameter('b', 0.1, 0.45),
 
 # set levers
 #model.levers = [RealParameter('decisions', 0, 0.1)] # 0, 0.1
-lake_model.levers = [RealParameter(str(i), 0, 0.1) for i in
+lake_model.levers = [RealParameter(f"l{i}", 0, 0.1) for i in
                      range(lake_model.time_horizon)]
 
 # specify outcomes
@@ -116,15 +116,17 @@ with SequentialEvaluator(lake_model) as evaluator:
 stop = time.time()
 print(f"Runtime in minutes: { ((stop-start)/60) }")
 
-sns.pairplot(pd.DataFrame.from_dict(outcomes))
+#1 sns.pairplot(pd.DataFrame.from_dict(outcomes))
+
+#1 plt.show()
+
+from ema_workbench.analysis import pairs_plotting
+
+fig, axes = pairs_plotting.pairs_scatter(experiments, outcomes, group_by='policy',
+                                         legend=False)
+hue = 'policy'
+fig.set_size_inches(8,8)
 plt.show()
-
-#from ema_workbench.analysis import pairs_plotting
-
-#fig, axes = pairs_plotting.pairs_scatter(experiments, outcomes, group_by='policy',
-#                                         legend=False)
-#fig.set_size_inches(8,8)
-#plt.show()
 
 # performing experiments
 
